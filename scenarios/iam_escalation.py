@@ -27,3 +27,16 @@ def run(profile=None, region=None):
         'user': user_name,
         'policy': policy_arn
     }
+
+def cleanup(profile=None, region=None, user_name='poctest-user', policy_arn='arn:aws:iam::aws:policy/AdministratorAccess'):
+    session_args = {}
+    if profile:
+        session_args['profile_name'] = profile
+    if region:
+        session_args['region_name'] = region
+    session = boto3.Session(**session_args)
+    iam = session.client('iam')
+
+    iam.detach_user_policy(UserName=user_name, PolicyArn=policy_arn)
+    iam.delete_user(UserName=user_name)
+    print(f"Cleaned up {user_name} and detached policy.")

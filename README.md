@@ -38,7 +38,20 @@ Simulates creating a user and attaching an AdministratorAccess policy.
 
 ```python cli.py iam_detect --profile <profile> --region <region>
 ```
-Detects whether an AttachUserPolicy event occurred in CloudTrail within the last 15 minutes.
+Detects whether an `AttachUserPolicy` event occurred in CloudTrail within the last 15 minutes and generates a JSON report (`report_iam_escalation.json`).
+
+* iam_cleanup
+
+```python cli.py iam_cleanup --profile <profile> --region <region>
+```
+Cleans up the IAM user and policy created during the IAM escalation scenario.
+
+## Report Files
+After running `iam_detect`, a report file is generated in the project root:
+
+```report_iam_escalation.json
+```
+This file contains details on detection status and event records.
 
 ## Development
 
