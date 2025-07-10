@@ -1,4 +1,4 @@
-# AWS Threat Simulation Framework
+# AWS-ThreatLab
 
 **A comprehensive CLI tool for simulating AWS attack scenarios and validating security detections**
 
@@ -23,7 +23,7 @@
 
 ## Overview
 
-The AWS Threat Simulation Framework is designed for defensive security teams to validate their detection capabilities by simulating realistic attack scenarios across AWS services.
+AWS-ThreatLab is designed for defensive security teams to validate their detection capabilities by simulating realistic attack scenarios across AWS services.
 
 ### Key Features
 
@@ -55,18 +55,49 @@ The AWS Threat Simulation Framework is designed for defensive security teams to 
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/malladisiddu/AWS-Threat-Simulation-Framework.git
-cd AWS-Threat-Simulation-Framework
+git clone https://github.com/malladisiddu/AWS-ThreatLab.git
+cd AWS-ThreatLab
 pip install -r requirements.txt
 
-# 2. Run a scenario
+# 2. View the CLI banner and available commands
+python cli.py
+
+# 3. Run a scenario
 python cli.py iam-escalation --profile your-profile --region us-east-1
 
-# 3. Test detection (wait 2-3 minutes for CloudTrail propagation)
+# 4. Test detection (wait 2-3 minutes for CloudTrail propagation)
 python cli.py iam-detect --profile your-profile --region us-east-1
 
-# 4. Clean up resources
+# 5. Clean up resources
 python cli.py iam-cleanup --profile your-profile --region us-east-1
+```
+
+### CLI Interface
+
+When you run the tool, you'll see a professional banner:
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║     █████╗ ██╗    ██╗███████╗      ████████╗██╗  ██╗██████╗ ███████╗ █████╗  ║
+║    ██╔══██╗██║    ██║██╔════╝      ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔══██╗ ║
+║    ███████║██║ █╗ ██║███████╗ █████╗  ██║   ███████║██████╔╝█████╗  ███████║ ║
+║    ██╔══██║██║███╗██║╚════██║ ╚════╝  ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══██║ ║
+║    ██║  ██║╚███╔███╔╝███████║         ██║   ██║  ██║██║  ██║███████╗██║  ██║ ║
+║    ╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝         ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ║
+║                                                                               ║
+║                   ████████╗██╗      █████╗ ██████╗                           ║
+║                   ╚══██╔══╝██║     ██╔══██╗██╔══██╗                          ║
+║                      ██║   ██║     ███████║██████╔╝                          ║
+║                      ██║   ██║     ██╔══██║██╔══██╗                          ║
+║                      ██║   ███████╗██║  ██║██████╔╝                          ║
+║                      ╚═╝   ╚══════╝╚═╝  ╚═╝╚═════╝                           ║
+║                                                                               ║
+║                             AWS-ThreatLab v1.0                               ║
+║                                                                               ║
+║               Validate Your Security Detections | Test Your Defenses         ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
 ```
 
 ---
@@ -164,8 +195,8 @@ aws sts get-caller-identity --profile testing
 
 ```bash
 # Clone repository
-git clone https://github.com/malladisiddu/AWS-Threat-Simulation-Framework.git
-cd AWS-Threat-Simulation-Framework
+git clone https://github.com/malladisiddu/AWS-ThreatLab.git
+cd AWS-ThreatLab
 
 # Create virtual environment
 python3 -m venv .venv
@@ -541,8 +572,8 @@ aws cloudtrail describe-trails --profile testing
 
 ```bash
 # Clone repository
-git clone https://github.com/malladisiddu/AWS-Threat-Simulation-Framework.git
-cd AWS-Threat-Simulation-Framework
+git clone https://github.com/malladisiddu/AWS-ThreatLab.git
+cd AWS-ThreatLab
 
 # Setup virtual environment
 python3 -m venv .venv
@@ -557,7 +588,7 @@ python cli.py --help
 ### Project Structure
 
 ```
-aws-threat-simulation-framework/
+aws-threatlab/
 ├── scenarios/              # Attack scenario implementations
 │   ├── iam_escalation.py
 │   ├── s3_exfiltration.py
@@ -609,4 +640,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 **Built for Security Teams | Validate Your Defenses | Improve Your Posture**
 
-[Report Issues](https://github.com/malladisiddu/AWS-Threat-Simulation-Framework/issues) • [Documentation](https://github.com/malladisiddu/AWS-Threat-Simulation-Framework/wiki) • [Discussions](https://github.com/malladisiddu/AWS-Threat-Simulation-Framework/discussions)
+[Report Issues](https://github.com/malladisiddu/AWS-ThreatLab/issues) • [Documentation](https://github.com/malladisiddu/AWS-ThreatLab/wiki) • [Discussions](https://github.com/malladisiddu/AWS-ThreatLab/discussions)

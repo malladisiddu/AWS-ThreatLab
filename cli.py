@@ -11,22 +11,105 @@ from detection.cloudtrail import (
 )
 from analyzer.report import generate_report
 
-@click.group()
+def display_banner():
+    """Display the AWS-ThreatLab banner"""
+    banner = """
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║     █████╗ ██╗    ██╗███████╗      ████████╗██╗  ██╗██████╗ ███████╗ █████╗  ║
+║    ██╔══██╗██║    ██║██╔════╝      ╚══██╔══╝██║  ██║██╔══██╗██╔════╝██╔══██╗ ║
+║    ███████║██║ █╗ ██║███████╗ █████╗  ██║   ███████║██████╔╝█████╗  ███████║ ║
+║    ██╔══██║██║███╗██║╚════██║ ╚════╝  ██║   ██╔══██║██╔══██╗██╔══╝  ██╔══██║ ║
+║    ██║  ██║╚███╔███╔╝███████║         ██║   ██║  ██║██║  ██║███████╗██║  ██║ ║
+║    ╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝         ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝ ║
+║                                                                               ║
+║                   ████████╗██╗      █████╗ ██████╗                           ║
+║                   ╚══██╔══╝██║     ██╔══██╗██╔══██╗                          ║
+║                      ██║   ██║     ███████║██████╔╝                          ║
+║                      ██║   ██║     ██╔══██║██╔══██╗                          ║
+║                      ██║   ███████╗██║  ██║██████╔╝                          ║
+║                      ╚═╝   ╚══════╝╚═╝  ╚═╝╚═════╝                           ║
+║                                                                               ║
+║                             AWS-ThreatLab v1.0                               ║
+║                                                                               ║
+║               Validate Your Security Detections | Test Your Defenses         ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+    """
+    echo(banner)
+
+@click.group(invoke_without_command=True)
 @click.option("--profile", default=None, help="AWS CLI profile to use")
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def cli(ctx, profile, region):
     """
-    AWS Threat Simulation Framework CLI
+    AWS-ThreatLab CLI
     """
     ctx.ensure_object(dict)
     ctx.obj['PROFILE'] = profile
     ctx.obj['REGION'] = region
+    
+    # Show banner when no command is provided
+    if ctx.invoked_subcommand is None:
+        display_banner()
+        echo("")
+        echo("AWS-ThreatLab")
+        echo("A professional CLI tool for validating security detections")
+        echo("")
+        echo("Usage: python cli.py [OPTIONS] COMMAND [ARGS]...")
+        echo("")
+        echo("Commands:")
+        echo("  version                Show version and banner")
+        echo("  iam-escalation         Run IAM privilege escalation scenario")
+        echo("  iam-detect             Detect IAM escalation attacks")
+        echo("  iam-cleanup            Clean up IAM escalation artifacts")
+        echo("  s3-exfil               Run S3 data exfiltration scenario")
+        echo("  s3-detect              Detect S3 exfiltration attacks")
+        echo("  s3-cleanup             Clean up S3 exfiltration artifacts")
+        echo("  lambda-backdoor        Deploy Lambda backdoor scenario")
+        echo("  lambda-detect          Detect Lambda backdoor activities")
+        echo("  lambda-cleanup         Clean up Lambda backdoor artifacts")
+        echo("  ec2-lateral            Deploy EC2 lateral movement scenario")
+        echo("  ec2-detect             Detect EC2 lateral movement")
+        echo("  ec2-cleanup            Clean up EC2 lateral movement artifacts")
+        echo("  cross-account          Deploy cross-account abuse scenario")
+        echo("  cross-account-detect   Detect cross-account abuse")
+        echo("  cross-account-cleanup  Clean up cross-account abuse artifacts")
+        echo("  advanced-detect        Run comprehensive threat detection")
+        echo("  cleanup-all            Clean up all scenario artifacts")
+        echo("")
+        echo("Options:")
+        echo("  --profile TEXT  AWS CLI profile to use")
+        echo("  --region TEXT   AWS region to target")
+        echo("  --help          Show this message and exit")
+        echo("")
+        echo("Examples:")
+        echo("  python cli.py version")
+        echo("  python cli.py iam-escalation --profile testing --region us-east-1")
+        echo("  python cli.py advanced-detect --profile testing --region us-east-1")
+        echo("")
+        echo("For command-specific help: python cli.py <command> --help")
 
 @cli.command()
 def version():
-    """Print CLI version"""
-    click.echo('aws-threat-sim v0.1.0')
+    """Print CLI version and banner"""
+    display_banner()
+    echo("")
+    echo("Version: 1.0.0")
+    echo("Tool: AWS-ThreatLab")
+    echo("Purpose: Defensive Security Testing")
+    echo("")
+    echo("Available Commands:")
+    echo("  - iam-escalation     : IAM privilege escalation scenario")
+    echo("  - s3-exfil          : S3 data exfiltration scenario")
+    echo("  - lambda-backdoor   : Lambda backdoor deployment")
+    echo("  - ec2-lateral       : EC2 lateral movement simulation")
+    echo("  - cross-account     : Cross-account abuse testing")
+    echo("  - advanced-detect   : Comprehensive threat detection")
+    echo("  - cleanup-all       : Clean up all scenario artifacts")
+    echo("")
+    echo("Use 'python cli.py <command> --help' for command-specific help")
 
 @cli.command()
 @click.option("--profile", default=None, help="AWS CLI profile to use")
@@ -256,24 +339,38 @@ def advanced_detect(ctx, profile, region):
     """Run comprehensive threat detection across all scenarios"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
+    
+    # Show banner for the main detection feature
+    display_banner()
+    echo("[*] Starting comprehensive threat detection analysis...")
+    echo("")
+    
     result = detect_advanced_threats(profile, region)
     
-    echo(f"Advanced Threat Detection Results:")
+    echo("="*79)
+    echo("THREAT DETECTION RESULTS")
+    echo("="*79)
     echo(f"Threat Score: {result['threat_score']}/5")
     echo(f"Total Events: {result['total_events']}")
+    echo("")
     
     if result['high_risk']:
-        echo(" HIGH RISK: Multiple attack vectors detected!")
+        echo("[!] HIGH RISK: Multiple attack vectors detected!")
     elif result['medium_risk']:
-        echo(" MEDIUM RISK: Some suspicious activities detected")
+        echo("[!] MEDIUM RISK: Some suspicious activities detected")
     else:
-        echo(" LOW RISK: No immediate threats detected")
+        echo("[+] LOW RISK: No immediate threats detected")
     
-    echo("\nDetection Breakdown:")
+    echo("")
+    echo("Detection Breakdown:")
+    echo("-" * 50)
     for detection_name, detection_result in result['detections'].items():
         status = "[+] DETECTED" if detection_result['detected'] else "[-] NOT DETECTED"
         event_count = detection_result['event_count']
-        echo(f"  {detection_name}: {status} ({event_count} events)")
+        echo(f"  {detection_name:20}: {status} ({event_count} events)")
+    
+    echo("")
+    echo("="*79)
     
     # Generate comprehensive report
     generate_report('advanced_threat_detection', result['threat_score'] > 0, result)
