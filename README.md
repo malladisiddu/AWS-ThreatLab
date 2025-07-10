@@ -11,8 +11,8 @@ A CLI tool to simulate AWS attack scenarios and verify detections via CloudTrail
 ## Installation
 
 ```bash
-git clone git@github.com:<your-org>/aws-threat-sim.git
-cd aws-threat-sim
+git clone https://github.com/malladisiddu/AWS-Threat-Simulation-Framework.git
+cd AWS-Threat-Simulation-Framework
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
