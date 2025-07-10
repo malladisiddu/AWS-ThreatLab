@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Editor & OS metadata
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# AWS CLI/credentials backups (DON'T commit credentials accidentally)
+*.bak
+*.log
+
+# dotenv / config files (optional, if used)
+.env
+.env.*
+
+# Reports and output files
+report_*.json
+
+# Test cache
+.pytest_cache/
+

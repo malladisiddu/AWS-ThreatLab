@@ -5,13 +5,6 @@ import uuid
 import base64
 
 def run(profile=None, region=None):
-    """
-    Simulate EC2 lateral movement scenario:
-    1. Create an EC2 instance with overprivileged role
-    2. Create security group with excessive permissions
-    3. Simulate credential harvesting via user data
-    4. Test cross-service access from EC2
-    """
     session_args = {}
     if profile:
         session_args['profile_name'] = profile
@@ -22,14 +15,14 @@ def run(profile=None, region=None):
     ec2_client = session.client('ec2')
     iam_client = session.client('iam')
     
-    # Generate unique identifiers
+    
     instance_name = f'lateral-movement-{uuid.uuid4().hex[:8]}'
     role_name = f'ec2-lateral-role-{uuid.uuid4().hex[:8]}'
     profile_name = f'ec2-lateral-profile-{uuid.uuid4().hex[:8]}'
     policy_name = f'ec2-lateral-policy-{uuid.uuid4().hex[:8]}'
     sg_name = f'lateral-sg-{uuid.uuid4().hex[:8]}'
     
-    # Create IAM role for EC2 with excessive permissions
+    
     trust_policy = {
         "Version": "2012-10-17",
         "Statement": [
@@ -41,7 +34,7 @@ def run(profile=None, region=None):
         ]
     }
     
-    # Overprivileged policy for lateral movement
+    
     lateral_policy = {
         "Version": "2012-10-17",
         "Statement": [
@@ -65,14 +58,13 @@ def run(profile=None, region=None):
         ]
     }
     
-    # Create IAM role
     iam_client.create_role(
         RoleName=role_name,
         AssumeRolePolicyDocument=json.dumps(trust_policy),
         Description='EC2 role for lateral movement simulation'
     )
     
-    # Create and attach policy
+    
     iam_client.create_policy(
         PolicyName=policy_name,
         PolicyDocument=json.dumps(lateral_policy),
@@ -87,14 +79,14 @@ def run(profile=None, region=None):
         PolicyArn=policy_arn
     )
     
-    # Create instance profile
+    
     iam_client.create_instance_profile(InstanceProfileName=profile_name)
     iam_client.add_role_to_instance_profile(
         InstanceProfileName=profile_name,
         RoleName=role_name
     )
     
-    # Create security group with excessive permissions
+    
     vpc_response = ec2_client.describe_vpcs(Filters=[{'Name': 'isDefault', 'Values': ['true']}])
     vpc_id = vpc_response['Vpcs'][0]['VpcId'] if vpc_response['Vpcs'] else None
     
@@ -105,7 +97,7 @@ def run(profile=None, region=None):
     )
     sg_id = sg_response['GroupId']
     
-    # Add overly permissive rules
+    
     ec2_client.authorize_security_group_ingress(
         GroupId=sg_id,
         IpPermissions=[
@@ -130,7 +122,7 @@ def run(profile=None, region=None):
         ]
     )
     
-    # Malicious user data script (simulated)
+    
     user_data_script = '''#!/bin/bash
 # Simulate credential harvesting and lateral movement
 echo "Starting lateral movement simulation..." > /tmp/lateral_movement.log
@@ -150,10 +142,10 @@ echo "Lateral movement simulation completed" >> /tmp/lateral_movement.log
     
     user_data_encoded = base64.b64encode(user_data_script.encode()).decode()
     
-    # Wait for instance profile propagation
+    
     time.sleep(15)
     
-    # Get latest Amazon Linux 2 AMI
+    
     try:
         ami_response = ec2_client.describe_images(
             Owners=['amazon'],
@@ -162,15 +154,15 @@ echo "Lateral movement simulation completed" >> /tmp/lateral_movement.log
                 {'Name': 'state', 'Values': ['available']}
             ]
         )
-        # Sort by creation date and get the latest
+        
         latest_ami = sorted(ami_response['Images'], key=lambda x: x['CreationDate'], reverse=True)[0]
         ami_id = latest_ami['ImageId']
     except Exception as e:
-        # Fallback to a known working AMI ID for us-east-1
+        
         print(f"Warning: Could not get latest AMI, using fallback: {e}")
         ami_id = 'ami-0c02fb55956c7d316'
     
-    # Launch EC2 instance
+    
     response = ec2_client.run_instances(
         ImageId=ami_id,
         MinCount=1,
@@ -192,13 +184,11 @@ echo "Lateral movement simulation completed" >> /tmp/lateral_movement.log
     
     instance_id = response['Instances'][0]['InstanceId']
     
-    # Wait for instance to be running
+    
     print(f"Waiting for instance {instance_id} to be running...")
     waiter = ec2_client.get_waiter('instance_running')
     waiter.wait(InstanceIds=[instance_id])
     
-    # Simulate accessing other AWS services from the instance
-    # This would typically be done via the instance's role
     print(f"EC2 lateral movement scenario deployed")
     print(f"Instance ID: {instance_id}")
     print(f"Security Group: {sg_id}")
@@ -219,7 +209,6 @@ echo "Lateral movement simulation completed" >> /tmp/lateral_movement.log
 
 def cleanup(profile=None, region=None, instance_id=None, security_group_id=None, 
            role_name=None, profile_name=None, policy_name=None):
-    """Clean up EC2 lateral movement resources"""
     session_args = {}
     if profile:
         session_args['profile_name'] = profile
@@ -232,27 +221,24 @@ def cleanup(profile=None, region=None, instance_id=None, security_group_id=None,
     
     cleanup_results = []
     
-    # Terminate EC2 instance
+    
     if instance_id:
         try:
             ec2_client.terminate_instances(InstanceIds=[instance_id])
             cleanup_results.append(f"Terminated EC2 instance: {instance_id}")
             
-            # Wait for instance to be terminated
             waiter = ec2_client.get_waiter('instance_terminated')
             waiter.wait(InstanceIds=[instance_id])
         except Exception as e:
             cleanup_results.append(f"Error terminating instance: {e}")
     
-    # Delete security group
     if security_group_id:
         try:
             ec2_client.delete_security_group(GroupId=security_group_id)
             cleanup_results.append(f"Deleted security group: {security_group_id}")
         except Exception as e:
             cleanup_results.append(f"Error deleting security group: {e}")
-    
-    # Remove role from instance profile and delete
+
     if profile_name and role_name:
         try:
             iam_client.remove_role_from_instance_profile(
@@ -263,8 +249,7 @@ def cleanup(profile=None, region=None, instance_id=None, security_group_id=None,
             cleanup_results.append(f"Deleted instance profile: {profile_name}")
         except Exception as e:
             cleanup_results.append(f"Error deleting instance profile: {e}")
-    
-    # Detach and delete policy
+
     if role_name and policy_name:
         try:
             account_id = session.client('sts').get_caller_identity()['Account']
@@ -276,7 +261,7 @@ def cleanup(profile=None, region=None, instance_id=None, security_group_id=None,
         except Exception as e:
             cleanup_results.append(f"Error deleting IAM policy: {e}")
     
-    # Delete IAM role
+
     if role_name:
         try:
             iam_client.delete_role(RoleName=role_name)

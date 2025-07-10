@@ -12,7 +12,6 @@ from detection.cloudtrail import (
 from analyzer.report import generate_report
 
 def display_banner():
-    """Display the AWS-ThreatLab banner"""
     banner = """
 ╔═════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                     ║
@@ -47,14 +46,10 @@ def display_banner():
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def cli(ctx, profile, region):
-    """
-    AWS-ThreatLab CLI
-    """
     ctx.ensure_object(dict)
     ctx.obj['PROFILE'] = profile
     ctx.obj['REGION'] = region
     
-    # Show banner when no command is provided
     if ctx.invoked_subcommand is None:
         display_banner()
         echo("")
@@ -132,7 +127,6 @@ def iam_escalation(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def iam_detect(ctx, profile, region):
-    """Detect IAM privilege escalation via CloudTrail and generate report"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     found, events = detect_iam_escalation(profile, region)
@@ -147,7 +141,6 @@ def iam_detect(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def iam_cleanup(ctx, profile, region):
-    """Cleanup IAM escalation test artifacts"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     cleanup_iam_escalation(profile, region)
@@ -157,13 +150,11 @@ def iam_cleanup(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def s3_exfil(ctx, profile, region):
-    """Run S3 data exfiltration scenario"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     result = run_s3_exfil(profile, region)
     echo(f"Scenario: {result['scenario']} completed. Bucket: {result['bucket']}")
     
-    # Store result for cleanup
     ctx.obj['S3_RESULT'] = result
 
 @cli.command()
@@ -171,7 +162,6 @@ def s3_exfil(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def s3_detect(ctx, profile, region):
-    """Detect S3 data exfiltration via CloudTrail and generate report"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     found, events = detect_s3_exfil(profile, region)
@@ -186,26 +176,22 @@ def s3_detect(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def s3_cleanup(ctx, profile, region):
-    """Cleanup S3 exfiltration artifacts"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     result = ctx.obj.get('S3_RESULT', {})
     cleanup_s3_exfil(profile, region, bucket_name=result.get('bucket'))
 
-# Lambda Backdoor Commands
 @cli.command()
 @click.option("--profile", default=None, help="AWS CLI profile to use")
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def lambda_backdoor(ctx, profile, region):
-    """Deploy Lambda backdoor scenario"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     result = run_lambda_backdoor(profile, region)
     echo(f"Lambda backdoor deployed: {result['function_name']}")
     echo(f"Status: {result['status']}")
-    
-    # Store result for cleanup
+
     ctx.obj['LAMBDA_RESULT'] = result
 
 @cli.command()
@@ -213,7 +199,7 @@ def lambda_backdoor(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def lambda_detect(ctx, profile, region):
-    """Detect Lambda backdoor via CloudTrail"""
+
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     found, events = detect_lambda_backdoor(profile, region)
@@ -228,7 +214,6 @@ def lambda_detect(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def lambda_cleanup(ctx, profile, region):
-    """Cleanup Lambda backdoor artifacts"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     result = ctx.obj.get('LAMBDA_RESULT', {})
@@ -239,20 +224,18 @@ def lambda_cleanup(ctx, profile, region):
         policy_name=result.get('policy_name')
     )
 
-# EC2 Lateral Movement Commands
 @cli.command()
 @click.option("--profile", default=None, help="AWS CLI profile to use")
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def ec2_lateral(ctx, profile, region):
-    """Deploy EC2 lateral movement scenario"""
+
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     result = run_ec2_lateral(profile, region)
     echo(f"EC2 lateral movement deployed: {result['instance_id']}")
     echo(f"Status: {result['status']}")
     
-    # Store result for cleanup
     ctx.obj['EC2_RESULT'] = result
 
 @cli.command()
@@ -260,7 +243,6 @@ def ec2_lateral(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def ec2_detect(ctx, profile, region):
-    """Detect EC2 lateral movement via CloudTrail"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     found, events = detect_ec2_lateral_movement(profile, region)
@@ -275,7 +257,6 @@ def ec2_detect(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def ec2_cleanup(ctx, profile, region):
-    """Cleanup EC2 lateral movement artifacts"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     result = ctx.obj.get('EC2_RESULT', {})
@@ -288,21 +269,18 @@ def ec2_cleanup(ctx, profile, region):
         policy_name=result.get('policy_name')
     )
 
-# Cross-Account Abuse Commands
 @cli.command()
 @click.option("--profile", default=None, help="AWS CLI profile to use")
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def cross_account(ctx, profile, region):
-    """Deploy cross-account abuse scenario"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     result = run_cross_account(profile, region)
     echo(f"Cross-account role deployed: {result['role_name']}")
     echo(f"External ID: {result['external_id']}")
     echo(f"Status: {result['status']}")
-    
-    # Store result for cleanup
+
     ctx.obj['CROSS_ACCOUNT_RESULT'] = result
 
 @cli.command()
@@ -310,7 +288,6 @@ def cross_account(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def cross_account_detect(ctx, profile, region):
-    """Detect cross-account abuse via CloudTrail"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     found, events = detect_cross_account_abuse(profile, region)
@@ -325,7 +302,6 @@ def cross_account_detect(ctx, profile, region):
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def cross_account_cleanup(ctx, profile, region):
-    """Cleanup cross-account abuse artifacts"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     result = ctx.obj.get('CROSS_ACCOUNT_RESULT', {})
@@ -335,17 +311,14 @@ def cross_account_cleanup(ctx, profile, region):
         policy_name=result.get('policy_name')
     )
 
-# Advanced Threat Detection
 @cli.command()
 @click.option("--profile", default=None, help="AWS CLI profile to use")
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def advanced_detect(ctx, profile, region):
-    """Run comprehensive threat detection across all scenarios"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     
-    # Show banner for the main detection feature
     display_banner()
     echo("[*] Starting comprehensive threat detection analysis...")
     echo("")
@@ -377,21 +350,17 @@ def advanced_detect(ctx, profile, region):
     echo("")
     echo("="*79)
     
-    # Generate comprehensive report
     generate_report('advanced_threat_detection', result['threat_score'] > 0, result)
 
-# Cleanup All
 @cli.command()
 @click.option("--profile", default=None, help="AWS CLI profile to use")
 @click.option("--region", default=None, help="AWS region to target")
 @click.pass_context
 def cleanup_all(ctx, profile, region):
-    """Cleanup all scenario artifacts"""
     profile = profile or ctx.obj.get('PROFILE')
     region = region or ctx.obj.get('REGION')
     echo("[+] Cleaning up all scenarios...")
     
-    # Cleanup in reverse order to handle dependencies
     scenarios = [
         ('lambda_backdoor', 'LAMBDA_RESULT', cleanup_lambda_backdoor),
         ('ec2_lateral_movement', 'EC2_RESULT', cleanup_ec2_lateral),

