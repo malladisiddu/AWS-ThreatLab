@@ -1,0 +1,6 @@
+boto3
+click
+PyYAML
+colorama
+tabulate
+dictdiffer
