@@ -25,3 +25,23 @@ def detect_iam_escalation(profile=None, region=None, lookback_minutes=15):
 
     # Return True if any event found
     return len(events) > 0, events
+
+def detect_s3_exfil(profile=None, region=None, lookback_minutes=15):
+    session_args = {}
+    if profile:
+        session_args['profile_name'] = profile
+    if region:
+        session_args['region_name'] = region
+    session = boto3.Session(**session_args)
+    ct = session.client('cloudtrail')
+
+    end_time = datetime.utcnow()
+    start_time = end_time - timedelta(minutes=lookback_minutes)
+
+    resp = ct.lookup_events(
+        LookupAttributes=[{'AttributeKey': 'EventName', 'AttributeValue': 'GetObject'}],
+        StartTime=start_time,
+        EndTime=end_time)
+    events = resp.get('Events', [])
+
+    return len(events) > 0, events

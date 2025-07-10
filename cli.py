@@ -1,10 +1,9 @@
 import click
 from click import echo
-from scenarios.iam_escalation import run as run_iam_escalation
-from detection.cloudtrail import detect_iam_escalation
 from scenarios.iam_escalation import run as run_iam_escalation, cleanup as cleanup_iam_escalation
+from detection.cloudtrail import detect_iam_escalation
+from scenarios.s3_exfiltration import run as run_s3_exfil, cleanup as cleanup_s3_exfil
 from analyzer.report import generate_report
-
 
 @click.group()
 @click.option("--profile", default=None, help="AWS CLI profile to use")
@@ -27,14 +26,15 @@ def version():
 @click.pass_context
 def iam_escalation(ctx):
     """Run IAM privilege escalation scenario"""
-    result = run_iam_escalation(ctx.obj.get('PROFILE'), ctx.obj.get('REGION'))
+    result = run_iam_escalation(ctx.obj['PROFILE'], ctx.obj['REGION'])
     echo(f"Scenario: {result['scenario']} completed. User: {result['user']}")
 
 @cli.command()
 @click.pass_context
 def iam_detect(ctx):
-    """Detect IAM privilege escalation via CloudTrail"""
-    found, events = detect_iam_escalation(ctx.obj.get('PROFILE'), ctx.obj.get('REGION'))
+    """Detect IAM privilege escalation via CloudTrail and generate report"""
+    found, events = detect_iam_escalation(ctx.obj['PROFILE'], ctx.obj['REGION'])
+    generate_report('iam_escalation', found, events)
     if found:
         echo(f"✅ Detection: AttachUserPolicy event found ({len(events)} occurrences)")
     else:
@@ -44,18 +44,35 @@ def iam_detect(ctx):
 @click.pass_context
 def iam_cleanup(ctx):
     """Cleanup IAM escalation test artifacts"""
-    cleanup_iam_escalation(ctx.obj.get('PROFILE'), ctx.obj.get('REGION'))
+    cleanup_iam_escalation(ctx.obj['PROFILE'], ctx.obj['REGION'])
 
 @cli.command()
 @click.pass_context
-def iam_detect(ctx):
-    """Detect IAM privilege escalation via CloudTrail and generate report"""
-    found, events = detect_iam_escalation(ctx.obj.get('PROFILE'), ctx.obj.get('REGION'))
-    generate_report('iam_escalation', found, events)
+def s3_exfil(ctx):
+    """Run S3 data exfiltration scenario"""
+    result = run_s3_exfil(ctx.obj['PROFILE'], ctx.obj['REGION'])
+    echo(f"Scenario: {result['scenario']} completed. Bucket: {result['bucket']}")
+
+@cli.command()
+@click.pass_context
+def s3_detect(ctx):
+    """Detect S3 data exfiltration via CloudTrail and generate report"""
+    found, events = detect_s3_exfil(ctx.obj['PROFILE'], ctx.obj['REGION'])
+    generate_report('s3_exfiltration', found, events)
     if found:
-        echo(f"✅ Detection: AttachUserPolicy event found ({len(events)} occurrences)")
+        echo(f"✅ Detection: GetObject event found ({len(events)} occurrences)")
     else:
-        echo("❌ Detection: No AttachUserPolicy events in the last 15 minutes")
+        echo("❌ Detection: No GetObject events in the last 15 minutes")
+
+@cli.command()
+@click.pass_context
+def s3_cleanup(ctx):
+    """Cleanup S3 exfiltration artifacts"""
+    cleanup_s3_exfil(ctx.obj['PROFILE'], ctx.obj['REGION'],
+                     bucket_name=ctx.obj.get('LAST_BUCKET'))
+
+
 
 if __name__ == '__main__':
     cli()
+
