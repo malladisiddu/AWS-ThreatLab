@@ -153,9 +153,26 @@ echo "Lateral movement simulation completed" >> /tmp/lateral_movement.log
     # Wait for instance profile propagation
     time.sleep(15)
     
+    # Get latest Amazon Linux 2 AMI
+    try:
+        ami_response = ec2_client.describe_images(
+            Owners=['amazon'],
+            Filters=[
+                {'Name': 'name', 'Values': ['amzn2-ami-hvm-*-x86_64-gp2']},
+                {'Name': 'state', 'Values': ['available']}
+            ]
+        )
+        # Sort by creation date and get the latest
+        latest_ami = sorted(ami_response['Images'], key=lambda x: x['CreationDate'], reverse=True)[0]
+        ami_id = latest_ami['ImageId']
+    except Exception as e:
+        # Fallback to a known working AMI ID for us-east-1
+        print(f"Warning: Could not get latest AMI, using fallback: {e}")
+        ami_id = 'ami-0c02fb55956c7d316'
+    
     # Launch EC2 instance
     response = ec2_client.run_instances(
-        ImageId='ami-0c02fb55956c7d316',  # Amazon Linux 2 AMI (us-east-1)
+        ImageId=ami_id,
         MinCount=1,
         MaxCount=1,
         InstanceType='t2.micro',
