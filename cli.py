@@ -1,6 +1,7 @@
 import click
 from click import echo
 from scenarios.iam_escalation import run as run_iam_escalation
+from detection.cloudtrail import detect_iam_escalation
 
 @click.group()
 @click.option("--profile", default=None, help="AWS CLI profile to use")
@@ -25,6 +26,16 @@ def iam_escalation(ctx):
     """Run IAM privilege escalation scenario"""
     result = run_iam_escalation(ctx.obj.get('PROFILE'), ctx.obj.get('REGION'))
     echo(f"Scenario: {result['scenario']} completed. User: {result['user']}")
+
+@cli.command()
+@click.pass_context
+def iam_detect(ctx):
+    """Detect IAM privilege escalation via CloudTrail"""
+    found, events = detect_iam_escalation(ctx.obj.get('PROFILE'), ctx.obj.get('REGION'))
+    if found:
+        echo(f"✅ Detection: AttachUserPolicy event found ({len(events)} occurrences)")
+    else:
+        echo("❌ Detection: No AttachUserPolicy events in the last 15 minutes")
 
 if __name__ == '__main__':
     cli()
