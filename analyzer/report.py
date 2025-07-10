@@ -1,3 +1,6 @@
+#!/usr/bin/Python3
+#Author: Siddartha Malladi
+#Twitter: st0ic3r
 import json
 from datetime import datetime
 from decimal import Decimal

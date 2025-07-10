@@ -1,3 +1,6 @@
+#!/usr/bin/Python3
+#Author: Siddartha Malladi
+#Twitter: st0ic3r
 import boto3
 import json
 import time
