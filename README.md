@@ -1,54 +1,109 @@
 # AWS Threat Simulation Framework
 
-A CLI tool to simulate AWS attack scenarios and verify detections via CloudTrail and CloudWatch.
+**A comprehensive CLI tool for simulating AWS attack scenarios and validating security detections**
 
-## Prerequisites
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
+[![AWS](https://img.shields.io/badge/AWS-CloudTrail-orange.svg)](https://aws.amazon.com)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+---
+
+## Table of Contents
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [AWS Setup Guide](#aws-setup-guide)
+- [Installation](#installation)
+- [Attack Scenarios](#attack-scenarios)
+- [Detection & Reports](#detection--reports)
+- [Security Guidelines](#security-guidelines)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+
+---
+
+## Overview
+
+The AWS Threat Simulation Framework is designed for defensive security teams to validate their detection capabilities by simulating realistic attack scenarios across AWS services.
+
+### Key Features
+
+- **Attack Simulation**: Five comprehensive attack scenarios covering IAM escalation, S3 exfiltration, Lambda backdoors, EC2 lateral movement, and cross-account abuse
+- **Detection Validation**: Real-time threat detection using CloudTrail events with comprehensive reporting
+- **Automated Cleanup**: Complete resource cleanup to prevent cost accumulation
+- **Enterprise Ready**: JSON reports, error handling, and production-safe design
+- **Risk Assessment**: Multi-vector threat analysis with scoring (0-5 scale)
+
+### Use Cases
+
+- Validate security monitoring and detection capabilities
+- Test incident response procedures
+- Assess security posture across AWS services
+- Train security teams on attack patterns
+- Compliance validation for security controls
+
+---
+
+## Quick Start
+
+### Prerequisites
 - Python 3.9+
 - AWS CLI v2
-- An AWS account with appropriate IAM permissions
+- AWS account with appropriate IAM permissions
+- CloudTrail enabled for detection capabilities
 
-## AWS Account Setup
+### Basic Workflow
 
-### 1. Create AWS Account
+```bash
+# 1. Clone and setup
+git clone https://github.com/malladisiddu/AWS-Threat-Simulation-Framework.git
+cd AWS-Threat-Simulation-Framework
+pip install -r requirements.txt
+
+# 2. Run a scenario
+python cli.py iam-escalation --profile your-profile --region us-east-1
+
+# 3. Test detection (wait 2-3 minutes for CloudTrail propagation)
+python cli.py iam-detect --profile your-profile --region us-east-1
+
+# 4. Clean up resources
+python cli.py iam-cleanup --profile your-profile --region us-east-1
+```
+
+---
+
+## AWS Setup Guide
+
+### Step 1: AWS Account Configuration
 
 If you don't have an AWS account:
-1. Go to [https://aws.amazon.com](https://aws.amazon.com)
-2. Click "Create an AWS Account"
-3. Follow the registration process
-4. Verify your email and phone number
-5. Add a payment method (required even for free tier)
+1. Create an account at [aws.amazon.com](https://aws.amazon.com)
+2. Complete email verification and add a payment method
+3. **Note**: Use a dedicated testing account, never production
 
-### 2. Enable CloudTrail (Required for Detection)
+### Step 2: Enable CloudTrail
 
-CloudTrail is essential for this framework to detect attack scenarios:
+> **⚠️ WARNING**: CloudTrail is required for threat detection functionality
 
-1. **Sign in to AWS Console**
-2. **Navigate to CloudTrail service**
-3. **Create a trail** (if not already exists):
+1. Navigate to **CloudTrail** in AWS Console
+2. **Create Trail** with the following settings:
    - Trail name: `threat-simulation-trail`
-   - Apply trail to all regions: `Yes`
-   - Read/Write events: `All`
-   - Data events: `S3` and `Lambda` (recommended)
-   - Storage location: Create new S3 bucket or use existing
-4. **Enable the trail**
+   - Apply to all regions: **Yes**
+   - Management events: **Read and Write**
+   - Data events: **S3 and Lambda** (recommended)
+3. **Enable the trail**
 
-> **Important**: CloudTrail may incur charges for data events and storage. Review pricing at https://aws.amazon.com/cloudtrail/pricing/
+**Cost Note**: CloudTrail may incur charges. Review pricing at [aws.amazon.com/cloudtrail/pricing](https://aws.amazon.com/cloudtrail/pricing/)
 
-### 3. Create IAM User for Threat Simulation
+### Step 3: Create IAM User and Permissions
 
-**⚠️ Security Note**: This framework requires broad permissions for testing purposes. Use a dedicated testing account, not production.
+#### Create IAM User
+1. **IAM Console** → Users → **Create User**
+2. Username: `threat-simulation-user`
+3. Access type: **Programmatic access**
 
-#### Step 3.1: Create IAM User
-1. **Go to IAM Console** → Users → Add User
-2. **User name**: `threat-simulation-user`
-3. **Access type**: Programmatic access (Access Key ID and Secret)
-4. **Click Next: Permissions**
+#### Create Custom Policy
 
-#### Step 3.2: Create Custom Policy
-1. **Click "Create policy"**
-2. **Switch to JSON tab**
-3. **Paste the following policy**:
+Create a new policy with the following JSON:
 
 ```json
 {
@@ -76,446 +131,482 @@ CloudTrail is essential for this framework to detect attack scenarios:
 }
 ```
 
-4. **Name**: `ThreatSimulationPolicy`
-5. **Description**: `Policy for AWS Threat Simulation Framework`
-6. **Click Create Policy**
+- Policy name: `ThreatSimulationPolicy`
+- Attach this policy to the `threat-simulation-user`
 
-#### Step 3.3: Attach Policy to User
-1. **Go back to user creation**
-2. **Click "Attach existing policies directly"**
-3. **Search for**: `ThreatSimulationPolicy`
-4. **Select the policy** and click Next
-5. **Add tags** (optional):
-   - Key: `Purpose`, Value: `ThreatSimulation`
-   - Key: `Environment`, Value: `Testing`
-6. **Click Create User**
+#### Download Credentials
+- Download the CSV file or copy the Access Key ID and Secret Access Key
+- Store credentials securely (you cannot retrieve the secret key again)
 
-#### Step 3.4: Download Credentials
-1. **Download CSV** or copy Access Key ID and Secret Access Key
-2. **Store securely** - you won't be able to retrieve the secret key again
-
-### 4. Install and Configure AWS CLI
-
-#### Step 4.1: Install AWS CLI v2
-
-**macOS (Homebrew)**:
-```bash
-brew install awscli
-```
-
-**macOS (Direct)**:
-```bash
-curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
-sudo installer -pkg AWSCLIV2.pkg -target /
-```
-
-**Linux**:
-```bash
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-```
-
-**Windows**:
-Download and run: https://awscli.amazonaws.com/AWSCLIV2.msi
-
-#### Step 4.2: Configure AWS CLI
+### Step 4: Configure AWS CLI
 
 ```bash
-aws configure
-```
+# Install AWS CLI v2
+# macOS: brew install awscli
+# Linux/Windows: Download from https://aws.amazon.com/cli/
 
-Enter the following when prompted:
-- **AWS Access Key ID**: `[Your Access Key from Step 3.4]`
-- **AWS Secret Access Key**: `[Your Secret Key from Step 3.4]`
-- **Default region name**: `us-east-1` (or your preferred region)
-- **Default output format**: `json`
-
-#### Step 4.3: Test AWS CLI Configuration
-
-```bash
-aws sts get-caller-identity
-```
-
-Expected output:
-```json
-{
-    "UserId": "AIDACKCEVSQ6C2EXAMPLE",
-    "Account": "123456789012",
-    "Arn": "arn:aws:iam::123456789012:user/threat-simulation-user"
-}
-```
-
-### 5. Configure AWS Profiles (Optional but Recommended)
-
-For better security, you can create separate profiles:
-
-```bash
-# Configure testing profile
+# Configure credentials
 aws configure --profile testing
+
+# When prompted, enter:
+# AWS Access Key ID: [Your Access Key]
+# AWS Secret Access Key: [Your Secret Key]
+# Default region name: us-east-1
+# Default output format: json
+
+# Test configuration
+aws sts get-caller-identity --profile testing
 ```
 
-Then use the framework with:
-```bash
-python cli.py iam-escalation --profile testing --region us-east-1
-```
+---
 
 ## Installation
 
 ```bash
+# Clone repository
 git clone https://github.com/malladisiddu/AWS-Threat-Simulation-Framework.git
 cd AWS-Threat-Simulation-Framework
+
+# Create virtual environment
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate   # Windows
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Verify installation
+python cli.py --help
 ```
 
-## Usage
+---
 
-### CLI Commands
+## Attack Scenarios
 
-#### Basic Commands
+### IAM Privilege Escalation
 
-* **version**
+Simulates unauthorized privilege escalation through IAM policy attachment.
+
 ```bash
-python cli.py version
+# Deploy scenario
+python cli.py iam-escalation --profile testing --region us-east-1
+
+# Detect threats
+python cli.py iam-detect --profile testing --region us-east-1
+
+# Clean up
+python cli.py iam-cleanup --profile testing --region us-east-1
 ```
-Prints the current CLI version.
 
-#### IAM Escalation Scenario
+**Scenario Details:**
+- Creates test IAM user
+- Attaches `AdministratorAccess` policy
+- Simulates privilege escalation attack patterns
 
-* **iam_escalation**
+### S3 Data Exfiltration
+
+Simulates data theft through S3 bucket manipulation and unauthorized access.
+
 ```bash
-python cli.py iam_escalation --profile <profile> --region <region>
-```
-Simulates creating a user and attaching an AdministratorAccess policy.
+# Deploy scenario
+python cli.py s3-exfil --profile testing --region us-east-1
 
-* **iam_detect**
+# Detect threats
+python cli.py s3-detect --profile testing --region us-east-1
+
+# Clean up
+python cli.py s3-cleanup --profile testing --region us-east-1
+```
+
+**Scenario Details:**
+- Creates temporary S3 bucket with test data
+- Attempts to make bucket publicly accessible
+- Simulates data exfiltration patterns
+
+### Lambda Backdoor
+
+Deploys malicious serverless functions with persistence mechanisms.
+
 ```bash
-python cli.py iam_detect --profile <profile> --region <region>
-```
-Detects whether an `AttachUserPolicy` event occurred in CloudTrail within the last 15 minutes and generates a JSON report (`report_iam_escalation.json`).
+# Deploy scenario
+python cli.py lambda-backdoor --profile testing --region us-east-1
 
-* **iam_cleanup**
+# Detect threats
+python cli.py lambda-detect --profile testing --region us-east-1
+
+# Clean up
+python cli.py lambda-cleanup --profile testing --region us-east-1
+```
+
+**Scenario Details:**
+- Creates Lambda function with excessive permissions
+- Implements backdoor functionality simulation
+- Tests serverless persistence mechanisms
+
+### EC2 Lateral Movement
+
+Simulates credential harvesting and lateral movement through EC2 instances.
+
 ```bash
-python cli.py iam_cleanup --profile <profile> --region <region>
+# Deploy scenario
+python cli.py ec2-lateral --profile testing --region us-east-1
+
+# Detect threats
+python cli.py ec2-detect --profile testing --region us-east-1
+
+# Clean up
+python cli.py ec2-cleanup --profile testing --region us-east-1
 ```
-Cleans up the IAM user and policy created during the IAM escalation scenario.
 
-#### S3 Exfiltration Scenario
+**Scenario Details:**
+- Launches EC2 instance with overprivileged IAM role
+- Creates overly permissive security groups
+- Simulates credential harvesting via user data scripts
 
-* **s3_exfil**
+### Cross-Account Abuse
+
+Tests cross-account trust relationship vulnerabilities.
+
 ```bash
-python cli.py s3_exfil --profile <profile> --region <region>
-```
-Simulates a data exfiltration attack on an S3 bucket by:
-  * Creating a temporary bucket
-  * Uploading a test object
-  * Making it public
-  * Reading the object (simulated attacker behavior)
+# Deploy scenario
+python cli.py cross-account --profile testing --region us-east-1
 
-* **s3_detect**
+# Detect threats
+python cli.py cross-account-detect --profile testing --region us-east-1
+
+# Clean up
+python cli.py cross-account-cleanup --profile testing --region us-east-1
+```
+
+**Scenario Details:**
+- Creates IAM role with overly permissive trust policy
+- Tests external account access capabilities
+- Simulates cross-account privilege escalation
+
+### Advanced Threat Detection
+
+Comprehensive analysis across all attack vectors with threat scoring.
+
 ```bash
-python cli.py s3_detect --profile <profile> --region <region>
+# Run complete threat analysis
+python cli.py advanced-detect --profile testing --region us-east-1
 ```
-Scans CloudTrail for `GetObject` events in the last 15 minutes. Generates a detection report at `report_s3_exfiltration.json`.
 
-* **s3_cleanup**
-```bash
-python cli.py s3_cleanup --profile <profile> --region <region>
+**Sample Output:**
 ```
-Deletes the test S3 bucket and objects created during the scenario.
+Advanced Threat Detection Results:
+Threat Score: 2/5
+Total Events: 7
+MEDIUM RISK: Some suspicious activities detected
 
-#### Lambda Backdoor Scenario
-
-* **lambda_backdoor**
-```bash
-python cli.py lambda_backdoor --profile <profile> --region <region>
+Detection Breakdown:
+  lambda_backdoor: NOT DETECTED (0 events)
+  ec2_lateral_movement: DETECTED (3 events)
+  cross_account_abuse: NOT DETECTED (0 events)
+  iam_escalation: DETECTED (4 events)
+  s3_exfiltration: NOT DETECTED (0 events)
 ```
-Deploys a malicious Lambda function with:
-  * Excessive IAM permissions (S3, EC2, IAM access)
-  * Backdoor functionality for remote command execution
-  * Persistence mechanisms
 
-* **lambda_detect**
-```bash
-python cli.py lambda_detect --profile <profile> --region <region>
+---
+
+## Detection & Reports
+
+### Report Generation
+
+All detection commands generate detailed JSON reports for analysis:
+
+| Report File | Description |
+|-------------|-------------|
+| `report_iam_escalation.json` | IAM privilege escalation detection results |
+| `report_s3_exfiltration.json` | S3 data exfiltration analysis |
+| `report_lambda_backdoor.json` | Lambda backdoor detection results |
+| `report_ec2_lateral_movement.json` | EC2 lateral movement analysis |
+| `report_cross_account_abuse.json` | Cross-account abuse detection |
+| `report_advanced_threat_detection.json` | Comprehensive threat analysis |
+
+### Sample Report Structure
+
+#### IAM Escalation Detection Report
+```json
+{
+  "scenario": "iam_escalation",
+  "detected": true,
+  "event_count": 1,
+  "timestamp": "2024-01-15T10:30:45.123456",
+  "events": [
+    {
+      "EventId": "12345678-1234-1234-1234-123456789012",
+      "EventName": "AttachUserPolicy",
+      "EventTime": "2024-01-15T10:25:22+00:00",
+      "EventSource": "iam.amazonaws.com",
+      "Username": "threat-simulation-user",
+      "Resources": [
+        {
+          "ResourceType": "AWS::IAM::User",
+          "ResourceName": "poctest-user"
+        },
+        {
+          "ResourceType": "AWS::IAM::Policy",
+          "ResourceName": "arn:aws:iam::aws:policy/AdministratorAccess"
+        }
+      ],
+      "SourceIPAddress": "203.0.113.12",
+      "UserAgent": "Boto3/1.39.4 Botocore/1.39.4"
+    }
+  ]
+}
 ```
-Detects Lambda backdoor activities via CloudTrail events including function creation, role assignments, and suspicious invocations.
 
-* **lambda_cleanup**
-```bash
-python cli.py lambda_cleanup --profile <profile> --region <region>
+#### Advanced Threat Detection Report
+```json
+{
+  "scenario": "advanced_threat_detection",
+  "detected": true,
+  "event_count": 8,
+  "timestamp": "2024-01-15T10:35:12.654321",
+  "events": {
+    "threat_score": 3,
+    "total_events": 8,
+    "high_risk": true,
+    "medium_risk": false,
+    "low_risk": false,
+    "detections": {
+      "lambda_backdoor": {
+        "detected": true,
+        "event_count": 2,
+        "events": [...]
+      },
+      "ec2_lateral_movement": {
+        "detected": true,
+        "event_count": 4,
+        "events": [...]
+      },
+      "cross_account_abuse": {
+        "detected": false,
+        "event_count": 0,
+        "events": []
+      },
+      "iam_escalation": {
+        "detected": true,
+        "event_count": 2,
+        "events": [...]
+      },
+      "s3_exfiltration": {
+        "detected": false,
+        "event_count": 0,
+        "events": []
+      }
+    }
+  }
+}
 ```
-Removes the Lambda function, IAM role, and associated policies.
 
-#### EC2 Lateral Movement Scenario
+### Risk Assessment Scoring
 
-* **ec2_lateral**
-```bash
-python cli.py ec2_lateral --profile <profile> --region <region>
-```
-Simulates EC2-based lateral movement by:
-  * Launching an EC2 instance with overprivileged IAM role
-  * Creating overly permissive security groups
-  * Simulating credential harvesting via user data
-  * Testing cross-service access
+| Threat Score | Risk Level | Description |
+|-------------|------------|-------------|
+| 0 | LOW | No immediate threats detected |
+| 1-2 | MEDIUM | Some suspicious activities detected |
+| 3+ | HIGH | Multiple attack vectors detected |
 
-* **ec2_detect**
-```bash
-python cli.py ec2_detect --profile <profile> --region <region>
-```
-Detects EC2 lateral movement activities including instance launches with IAM roles, security group modifications, and privilege escalation.
+---
 
-* **ec2_cleanup**
-```bash
-python cli.py ec2_cleanup --profile <profile> --region <region>
-```
-Terminates EC2 instances and removes security groups, IAM roles, and policies.
+## Security Guidelines
 
-#### Cross-Account Abuse Scenario
+### Critical Security Requirements
 
-* **cross_account**
-```bash
-python cli.py cross_account --profile <profile> --region <region>
-```
-Creates a cross-account role with:
-  * Overly permissive trust policies (wildcard principals)
-  * Excessive permissions for external account access
-  * Test role assumption functionality
+> **⚠️ WARNING**: This framework requires broad AWS permissions for testing purposes. Use only in dedicated testing accounts.
 
-* **cross_account_detect**
-```bash
-python cli.py cross_account_detect --profile <profile> --region <region>
-```
-Detects cross-account abuse via role assumptions, external IP access, and overly permissive trust policies.
+#### Account Isolation
+- **Never use production AWS accounts** for threat simulation
+- Use dedicated security testing accounts with proper boundaries
+- Implement monitoring and alerting for all testing activities
+- Consider using AWS Organizations for account separation
 
-* **cross_account_cleanup**
-```bash
-python cli.py cross_account_cleanup --profile <profile> --region <region>
-```
-Removes cross-account roles and associated policies.
+#### Credential Management
+- Use AWS CLI profiles instead of hardcoded credentials
+- Enable MFA on your AWS account root user
+- Rotate access keys regularly
+- Consider using AWS STS for temporary credentials
 
-#### Advanced Detection
+#### Cost Management
+- Set up billing alerts before conducting tests
+- Always run cleanup commands after scenario completion
+- Monitor AWS costs using Cost Explorer
+- Use the `cleanup-all` command for comprehensive resource removal
 
-* **advanced_detect**
-```bash
-python cli.py advanced_detect --profile <profile> --region <region>
-```
-Runs comprehensive threat detection across all scenarios with:
-  * Multi-vector attack analysis
-  * Threat scoring (0-5 scale)
-  * Risk categorization (Low/Medium/High)
-  * Detailed event breakdown
+#### Legal and Compliance
+- Ensure proper authorization before conducting security tests
+- Document all testing activities for audit purposes
+- Follow organizational security policies and procedures
+- Consider regulatory requirements (SOC2, PCI-DSS, etc.)
 
-#### Cleanup Commands
-
-* **cleanup_all**
-```bash
-python cli.py cleanup_all --profile <profile> --region <region>
-```
-Comprehensive cleanup of all scenario artifacts across all attack vectors.
-## Security Best Practices
-
-### 🔒 **Critical Security Guidelines**
-
-1. **Never Use Production Accounts**
-   - Always use dedicated testing/sandbox AWS accounts
-   - Never run this framework in production environments
-   - Set up account boundaries and monitoring
-
-2. **Credential Management**
-   - Use AWS CLI profiles instead of hardcoded credentials
-   - Rotate access keys regularly
-   - Enable MFA on your AWS account
-   - Use temporary credentials when possible
-
-3. **Network Security**
-   - Run scenarios in isolated VPCs
-   - Use security groups to limit access
-   - Monitor network traffic during tests
-
-4. **Cost Management**
-   - Set up billing alerts
-   - Use AWS Cost Explorer to monitor spending
-   - Clean up resources immediately after testing
-   - Consider using AWS Cost Anomaly Detection
-
-5. **Compliance & Legal**
-   - Ensure you have authorization to run security tests
-   - Document all testing activities
-   - Follow your organization's security policies
-   - Consider regulatory requirements (SOC2, PCI-DSS, etc.)
-
-### 🛡️ **Recommended AWS Account Structure**
+### Recommended Account Architecture
 
 ```
 Production Account (123456789012)
 ├── No threat simulation tools
-└── Strict access controls
+└── Strict access controls and monitoring
 
-Security Testing Account (987654321098)  
-├── Threat simulation framework
-├── CloudTrail enabled
-├── Monitoring and alerting
-└── Isolated from production
+Security Testing Account (987654321098)
+├── Threat simulation framework deployment
+├── CloudTrail enabled with comprehensive logging
+├── Real-time monitoring and alerting
+└── Complete isolation from production systems
 ```
 
-## Quick Start Example
-
-After setup, try this basic workflow:
-
-```bash
-# 1. Test basic functionality
-python cli.py version
-
-# 2. Run a simple scenario
-python cli.py iam-escalation --profile testing --region us-east-1
-
-# 3. Wait 1-2 minutes for CloudTrail propagation
-
-# 4. Test detection
-python cli.py iam-detect --profile testing --region us-east-1
-
-# 5. Clean up
-python cli.py iam-cleanup --profile testing --region us-east-1
-```
-
-## Report Files
-
-Reports are generated in JSON format in the project root:
-
-- `report_iam_escalation.json` - IAM privilege escalation detection
-- `report_s3_exfiltration.json` - S3 data exfiltration detection  
-- `report_lambda_backdoor.json` - Lambda backdoor detection
-- `report_ec2_lateral_movement.json` - EC2 lateral movement detection
-- `report_cross_account_abuse.json` - Cross-account abuse detection
-- `report_advanced_threat_detection.json` - Comprehensive threat analysis
-
-Each report contains:
-- Detection status (found/not found)
-- Event details from CloudTrail
-- Timestamps and source information
-- Risk assessment and recommendations
+---
 
 ## Troubleshooting
 
 ### Common Issues
 
-**1. "NoCredentialsError" or "Unable to locate credentials"**
+#### Credential Errors
+**Error**: "NoCredentialsError" or "Unable to locate credentials"
+
+**Solution**:
 ```bash
 # Check AWS CLI configuration
-aws configure list
+aws configure list --profile testing
 
-# Verify credentials work
-aws sts get-caller-identity
+# Verify credentials functionality
+aws sts get-caller-identity --profile testing
 
-# Check if profile exists
+# List available profiles
 aws configure list-profiles
 ```
 
-**2. "An error occurred (AccessDenied)"**
-- Verify IAM user has the ThreatSimulationPolicy attached
-- Check the policy JSON is correctly formatted
+#### Access Denied Errors
+**Error**: "An error occurred (AccessDenied)"
+
+**Solutions**:
+- Verify IAM user has `ThreatSimulationPolicy` attached
+- Confirm policy JSON formatting is correct
 - Ensure you're using the correct AWS region
+- Verify CloudTrail is enabled and accessible
 
-**3. "No events found" during detection**
-- Wait 5-15 minutes for CloudTrail propagation
-- Verify CloudTrail is enabled and logging
-- Check CloudTrail is logging the correct event types
-- Ensure events are in the same region
+#### Detection Issues
+**Error**: "No events found" during detection
 
-**4. "InvalidAMIID.NotFound" for EC2 scenarios**
-- The framework auto-detects AMI IDs, but may fail in some regions
+**Solutions**:
+- Wait 5-15 minutes for CloudTrail event propagation
+- Verify CloudTrail is enabled and actively logging
+- Confirm CloudTrail is capturing the correct event types
+- Ensure scenario and detection commands use the same region
+
+#### EC2 Launch Failures
+**Error**: EC2 instance launch failures
+
+**Solutions**:
+- Verify your account has a default VPC and subnets
+- Check EC2 service limits in your target region
+- Ensure t2.micro instances are available in your region
 - Try switching to us-east-1 or us-west-2
-- Check if your account has default VPC
 
-**5. EC2 instance launch failures**
-- Verify your account has default VPC and subnets
-- Check EC2 service limits in your region
-- Ensure t2.micro instances are available
+#### Cost Management
+**Issue**: Unexpected AWS charges
 
-**6. High AWS costs**
+**Solutions**:
 ```bash
-# Always clean up after testing
+# Run comprehensive cleanup
 python cli.py cleanup-all --profile testing --region us-east-1
 
-# Check what resources are still running
-aws ec2 describe-instances --profile testing --region us-east-1
-aws lambda list-functions --profile testing --region us-east-1
-aws s3 ls --profile testing --region us-east-1
+# Check for remaining resources
+aws ec2 describe-instances --profile testing
+aws lambda list-functions --profile testing
+aws s3 ls --profile testing
 ```
 
-### Debug Mode
+### Debug Commands
 
-For detailed debugging, you can:
+```bash
+# Test basic functionality
+python cli.py version
 
-1. **Enable CloudTrail Data Events** for more detailed logging
-2. **Use CloudWatch Logs** to monitor Lambda function execution
-3. **Check IAM Access Analyzer** for policy recommendations
-4. **Enable AWS Config** for resource compliance monitoring
+# Verify AWS connectivity
+aws sts get-caller-identity --profile testing
 
-### Getting Help
+# Validate Python imports
+python -c "from scenarios.iam_escalation import run, cleanup"
 
-- **GitHub Issues**: Report bugs or request features
-- **AWS Documentation**: https://docs.aws.amazon.com/
-- **CloudTrail Events Reference**: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference.html
+# Check CloudTrail configuration
+aws cloudtrail describe-trails --profile testing
+```
 
-## Development
+---
+
+## Contributing
+
+### Development Environment Setup
+
+```bash
+# Clone repository
+git clone https://github.com/malladisiddu/AWS-Threat-Simulation-Framework.git
+cd AWS-Threat-Simulation-Framework
+
+# Setup virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Validate installation
+python -m py_compile scenarios/*.py detection/*.py
+python cli.py --help
+```
 
 ### Project Structure
+
 ```
 aws-threat-simulation-framework/
-├── scenarios/          # Attack scenario implementations
+├── scenarios/              # Attack scenario implementations
 │   ├── iam_escalation.py
 │   ├── s3_exfiltration.py
 │   ├── lambda_backdoor.py
 │   ├── ec2_lateral_movement.py
 │   └── cross_account_abuse.py
-├── detection/          # Detection logic
+├── detection/              # Detection logic and CloudTrail analysis
 │   └── cloudtrail.py
-├── analyzer/           # Report generation
+├── analyzer/               # Report generation and analysis
 │   └── report.py
-├── cli.py             # Main CLI interface
-├── requirements.txt   # Python dependencies
-└── README.md         # This file
+├── cli.py                  # Main CLI interface
+├── requirements.txt        # Python dependencies
+└── README.md              # Project documentation
 ```
 
 ### Adding New Scenarios
 
-1. Create scenario file in `scenarios/` directory
-2. Implement `run()` and `cleanup()` functions
-3. Add detection logic to `detection/cloudtrail.py`
-4. Add CLI commands to `cli.py`
-5. Update README with new scenario documentation
+1. Create new scenario file in `scenarios/` directory
+2. Implement `run()` and `cleanup()` functions following existing patterns
+3. Add corresponding detection logic to `detection/cloudtrail.py`
+4. Update CLI commands in `cli.py`
+5. Test thoroughly in isolated environment
+6. Update documentation and examples
 
-### Testing
+### Development Guidelines
 
-```bash
-# Run syntax checks
-python -m py_compile scenarios/*.py detection/*.py
+- Focus on defensive security capabilities and detection validation
+- Follow secure coding practices and input validation
+- Ensure comprehensive error handling and logging
+- Maintain backwards compatibility for CLI interface
+- Test all changes in isolated AWS environments
 
-# Test imports
-python -c "from scenarios.iam_escalation import run, cleanup"
+### Code Review Requirements
 
-# Test CLI commands
-python cli.py --help
-```
+- All scenarios must include proper cleanup functionality
+- Detection logic must be thoroughly tested
+- New features require documentation updates
+- Security implications must be clearly documented
 
-## Contributing
+---
 
-Contributions are welcome! Please:
+## License
 
-1. Fork the repository
-2. Create a feature branch
-3. Test your changes thoroughly
-4. Submit a pull request with detailed description
-5. Follow security best practices in your code
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-### Code of Conduct
+**Disclaimer**: This tool is designed for defensive security testing purposes only. Users are responsible for ensuring proper authorization and compliance with all applicable laws and regulations.
 
-This project is for **defensive security purposes only**. Contributors must:
-- Focus on improving detection capabilities
-- Never create malicious tools or exploits
-- Follow responsible disclosure for any vulnerabilities found
-- Respect AWS terms of service and legal requirements
+---
+
+**Built for Security Teams | Validate Your Defenses | Improve Your Posture**
+
+[Report Issues](https://github.com/malladisiddu/AWS-Threat-Simulation-Framework/issues) • [Documentation](https://github.com/malladisiddu/AWS-Threat-Simulation-Framework/wiki) • [Discussions](https://github.com/malladisiddu/AWS-Threat-Simulation-Framework/discussions)

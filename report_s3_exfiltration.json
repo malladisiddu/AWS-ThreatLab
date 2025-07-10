@@ -1,0 +1,7 @@
+{
+  "scenario": "s3_exfiltration",
+  "detected": false,
+  "event_count": 0,
+  "timestamp": "2025-07-10T15:21:44.809861",
+  "events": []
+}

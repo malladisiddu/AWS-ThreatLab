@@ -1,0 +1,81 @@
+{
+  "scenario": "advanced_threat_detection",
+  "detected": true,
+  "event_count": 6,
+  "timestamp": "2025-07-10T15:20:10.177122",
+  "events": {
+    "threat_score": 1,
+    "total_events": 2,
+    "detections": {
+      "lambda_backdoor": {
+        "detected": false,
+        "event_count": 0,
+        "events": []
+      },
+      "ec2_lateral_movement": {
+        "detected": false,
+        "event_count": 0,
+        "events": []
+      },
+      "cross_account_abuse": {
+        "detected": false,
+        "event_count": 0,
+        "events": []
+      },
+      "iam_escalation": {
+        "detected": true,
+        "event_count": 2,
+        "events": [
+          {
+            "EventId": "f59c9040-9fab-48fa-af46-99a16886dcf2",
+            "EventName": "AttachUserPolicy",
+            "ReadOnly": "false",
+            "AccessKeyId": "AKIAZRQOTWNV34G3RAGN",
+            "EventTime": "2025-07-10 20:47:34+05:30",
+            "EventSource": "iam.amazonaws.com",
+            "Username": "threat-simulation-user",
+            "Resources": [
+              {
+                "ResourceType": "AWS::IAM::User",
+                "ResourceName": "poctest-user"
+              },
+              {
+                "ResourceType": "AWS::IAM::Policy",
+                "ResourceName": "arn:aws:iam::aws:policy/AdministratorAccess"
+              }
+            ],
+            "CloudTrailEvent": "{\"eventVersion\":\"1.11\",\"userIdentity\":{\"type\":\"IAMUser\",\"principalId\":\"AIDAZRQOTWNVYFBVHBUAS\",\"arn\":\"arn:aws:iam::656086905707:user/threat-simulation-user\",\"accountId\":\"656086905707\",\"accessKeyId\":\"AKIAZRQOTWNV34G3RAGN\",\"userName\":\"threat-simulation-user\"},\"eventTime\":\"2025-07-10T15:17:34Z\",\"eventSource\":\"iam.amazonaws.com\",\"eventName\":\"AttachUserPolicy\",\"awsRegion\":\"us-east-1\",\"sourceIPAddress\":\"49.43.228.239\",\"userAgent\":\"Boto3/1.39.4 md/Botocore#1.39.4 ua/2.1 os/macos#24.5.0 md/arch#x86_64 lang/python#3.13.5 md/pyimpl#CPython m/Z,b,D cfg/retry-mode#legacy Botocore/1.39.4\",\"requestParameters\":{\"userName\":\"poctest-user\",\"policyArn\":\"arn:aws:iam::aws:policy/AdministratorAccess\"},\"responseElements\":null,\"requestID\":\"5eb0c2bc-c052-4d2c-9dcc-993bd91bda36\",\"eventID\":\"f59c9040-9fab-48fa-af46-99a16886dcf2\",\"readOnly\":false,\"eventType\":\"AwsApiCall\",\"managementEvent\":true,\"recipientAccountId\":\"656086905707\",\"eventCategory\":\"Management\",\"tlsDetails\":{\"tlsVersion\":\"TLSv1.3\",\"cipherSuite\":\"TLS_AES_128_GCM_SHA256\",\"clientProvidedHostHeader\":\"iam.amazonaws.com\"}}"
+          },
+          {
+            "EventId": "182832bc-abb2-4fc3-8c18-62b78bc9d66f",
+            "EventName": "AttachUserPolicy",
+            "ReadOnly": "false",
+            "AccessKeyId": "AKIAZRQOTWNV34G3RAGN",
+            "EventTime": "2025-07-10 20:44:22+05:30",
+            "EventSource": "iam.amazonaws.com",
+            "Username": "threat-simulation-user",
+            "Resources": [
+              {
+                "ResourceType": "AWS::IAM::User",
+                "ResourceName": "poctest-user"
+              },
+              {
+                "ResourceType": "AWS::IAM::Policy",
+                "ResourceName": "arn:aws:iam::aws:policy/AdministratorAccess"
+              }
+            ],
+            "CloudTrailEvent": "{\"eventVersion\":\"1.11\",\"userIdentity\":{\"type\":\"IAMUser\",\"principalId\":\"AIDAZRQOTWNVYFBVHBUAS\",\"arn\":\"arn:aws:iam::656086905707:user/threat-simulation-user\",\"accountId\":\"656086905707\",\"accessKeyId\":\"AKIAZRQOTWNV34G3RAGN\",\"userName\":\"threat-simulation-user\"},\"eventTime\":\"2025-07-10T15:14:22Z\",\"eventSource\":\"iam.amazonaws.com\",\"eventName\":\"AttachUserPolicy\",\"awsRegion\":\"us-east-1\",\"sourceIPAddress\":\"49.43.228.239\",\"userAgent\":\"Boto3/1.39.4 md/Botocore#1.39.4 ua/2.1 os/macos#24.5.0 md/arch#x86_64 lang/python#3.13.5 md/pyimpl#CPython m/b,Z,D cfg/retry-mode#legacy Botocore/1.39.4\",\"requestParameters\":{\"userName\":\"poctest-user\",\"policyArn\":\"arn:aws:iam::aws:policy/AdministratorAccess\"},\"responseElements\":null,\"requestID\":\"cb97e754-0f44-47d6-953d-23a145e0c4b9\",\"eventID\":\"182832bc-abb2-4fc3-8c18-62b78bc9d66f\",\"readOnly\":false,\"eventType\":\"AwsApiCall\",\"managementEvent\":true,\"recipientAccountId\":\"656086905707\",\"eventCategory\":\"Management\",\"tlsDetails\":{\"tlsVersion\":\"TLSv1.3\",\"cipherSuite\":\"TLS_AES_128_GCM_SHA256\",\"clientProvidedHostHeader\":\"iam.amazonaws.com\"}}"
+          }
+        ]
+      },
+      "s3_exfiltration": {
+        "detected": false,
+        "event_count": 0,
+        "events": []
+      }
+    },
+    "high_risk": false,
+    "medium_risk": true,
+    "low_risk": false
+  }
+}
