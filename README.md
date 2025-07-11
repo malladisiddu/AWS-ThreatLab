@@ -74,7 +74,7 @@ python cli.py iam-cleanup --profile your-profile --region us-east-1
 
 ### CLI Interface
 
-When you run the tool, you'll see the following banner banner:
+When you run the tool, you'll see the following banner:
 
 ```
 ╔═════════════════════════════════════════════════════════════════════════════════════╗
